@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fff6fb">
+<meta name="description" content="nanomoto — something cute is on the way.">
+<title>nanomoto</title>
+<link rel="icon" id="favicon" href="data:,">
+<link rel="preload" href="fonts/pixelify-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Pixelify Sans, SIL Open Font License 1.1, (c) The Pixelify Sans Project Authors. See fonts/OFL.txt */
+  @font-face { font-family: "Pixelify Sans"; font-weight: 400; font-display: swap; src: url(fonts/pixelify-sans-latin-400-normal.woff2) format("woff2"); }
+  @font-face { font-family: "Pixelify Sans"; font-weight: 700; font-display: swap; src: url(fonts/pixelify-sans-latin-700-normal.woff2) format("woff2"); }
+
+  :root {
+    --bg: #fff6fb; --bg-2: #f1ebff; --dot: #f2d6ea; --panel: #ffffff; --line: #f1d8e7;
+    --text: #4a3555; --muted: #8f7c9a; --pink: #ff9fc8; --pink-deep: #e47aa9; --lav: #c7b3ff;
+    --ink: #3e1f3a;
+    --pixel: "Pixelify Sans", ui-monospace, "Cascadia Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; color: var(--text); }
+  html { background: var(--bg-2); }
+  body {
+    font: 16px/1.4 var(--pixel);
+    font-variant-ligatures: none; font-feature-settings: "liga" 0, "clig" 0;
+    text-transform: lowercase;
+    display: grid; place-items: center; padding: 24px;
+    background:
+      radial-gradient(var(--dot) 1.2px, transparent 1.4px) 0 0 / 22px 22px,
+      linear-gradient(160deg, var(--bg) 0%, var(--bg-2) 100%) fixed;
+  }
+  main {
+    width: min(100%, 420px); text-align: center;
+    background: var(--panel); border: 2px solid var(--line); border-radius: 20px;
+    padding: 34px 26px 28px; box-shadow: 0 8px 0 rgba(228, 190, 215, .4);
+  }
+  .kitty { width: 132px; margin: 0 auto 6px; cursor: pointer; position: relative; transform-origin: 50% 100%; }
+  .kitty canvas { width: 100%; height: auto; display: block; image-rendering: pixelated; }
+  .kitty.loaf canvas { transform-origin: 50% 100%; animation: breathe 3.2s ease-in-out infinite; }
+  .kitty.hop { animation: hop .55s ease-out; }
+  .zzz {
+    position: absolute; right: 0; top: -8px; color: var(--lav);
+    font: 700 18px/1 var(--pixel); animation: zzz 2.6s ease-in-out infinite; pointer-events: none;
+  }
+  .kitty:not(.loaf) .zzz { display: none; }
+  @keyframes breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.035); } }
+  @keyframes hop {
+    0%, 100% { transform: translateY(0) scale(1, 1); }
+    25% { transform: translateY(0) scale(1.08, .9); }
+    55% { transform: translateY(-22%) scale(.95, 1.06); }
+    80% { transform: translateY(0) scale(1.06, .94); }
+  }
+  @keyframes zzz { 0% { opacity: 0; transform: translate(0, 4px); } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: translate(8px, -12px); } }
+
+  h1 { margin: 10px 0 6px; font: 700 40px/1 var(--pixel); letter-spacing: .02em; color: var(--ink); }
+  p { margin: 0; color: var(--muted); }
+  .soon {
+    display: inline-block; margin-top: 18px; padding: 8px 16px;
+    background: var(--pink); color: var(--ink); border: 2px solid var(--ink); border-radius: 12px;
+    font: 700 15px/1 var(--pixel); box-shadow: 0 4px 0 var(--ink);
+  }
+  .hearts { display: flex; justify-content: center; gap: 8px; margin-top: 22px; }
+  .hearts canvas { width: 18px; image-rendering: pixelated; }
+
+  .pop { position: fixed; pointer-events: none; width: 20px; image-rendering: pixelated; z-index: 10; animation: pop 1s ease-out forwards; }
+  @keyframes pop { 0% { opacity: 1; transform: translate(0, 0) scale(.6); } 100% { opacity: 0; transform: translate(var(--dx), -80px) scale(1.2); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kitty.loaf canvas, .zzz { animation: none; }
+    .kitty.hop, .pop { animation: none; display: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kitty loaf" id="kitty" role="button" tabindex="0" aria-label="Pet the kitty">
+    <canvas id="kittyCanvas"></canvas>
+    <span class="zzz">z</span>
+  </div>
+  <h1>nanomoto</h1>
+  <p>something cute is on the way</p>
+  <span class="soon">coming soon</span>
+  <div class="hearts" aria-hidden="true"><canvas></canvas><canvas></canvas><canvas></canvas></div>
+</main>
+
+<script>
+(() => {
+  const PASTELS = ["#ff9ec4", "#c7b3ff", "#8fe3c4", "#ffc09f", "#9ecbff", "#ffe27a", "#ffb3cf"];
+
+  function gridToCanvas(grid, colors) {
+    const c = document.createElement("canvas");
+    c.width = grid[0].length; c.height = grid.length;
+    const x = c.getContext("2d");
+    grid.forEach((row, y) => [...row].forEach((ch, i) => {
+      const col = colors[ch];
+      if (col) { x.fillStyle = col; x.fillRect(i, y, 1, 1); }
+    }));
+    return c;
+  }
+  function paint(target, src) {
+    target.width = src.width; target.height = src.height;
+    const ctx = target.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(src, 0, 0);
+  }
+
+  // black pixel kitty
+  const PAL = { k: "#1f1a24", g: "#463d4f", e: "#d9e98c", d: "#a8bd5a", w: "#ffffff" };
+  const CAT_BASE = [
+    "..kk..........kk......",
+    "..kkk........kkk......",
+    "..kgkk......kkgk......",
+    "..kggkkkkkkkkggk......",
+    ".kkkkkkkkkkkkkkkk.....",
+    ".kkkkkkkkkkkkkkkk.....",
+    ".kkkkkkkkkkkkkkkk.....",
+    ".kkkkkkkkkkkkkkkk.....",
+    ".kkkkkkkkkkkkkkkk.....",
+    ".kkkkkkkggkkkkkkk.....",
+    "..kkkkkkkkkkkkkk......",
+    "...kkkkkkkkkkkk.......",
+    "...kkkkkkkkkkkk.......",
+    "..kkkkkkkkkkkkkk......",
+    "..kkkkkkkkkkkkkk......",
+    "..kkkkkkkkkkkkkk......",
+    "..kkkkkkkkkkkkkkk.....",
+    "...kk.kk..kk.kk.......",
+  ].map((r) => ".." + r);
+  const TAIL = [[18,16],[19,16],[19,15],[20,15],[20,14],[20,13],[21,13],[21,12],[21,11],[20,10]];
+  const EYES = {
+    happy: ["kkkk", "keek", "ekke", "kkkk"],
+    sleep: ["kkkk", "kkkk", "dkkd", "kddk"],
+  };
+  function catGrid(eyes) {
+    const g = CAT_BASE.map((r) => r.split(""));
+    for (const x0 of [5, 13]) EYES[eyes].forEach((row, dy) => [...row].forEach((ch, dx) => { g[5 + dy][x0 + dx] = ch; }));
+    for (const [x, y] of TAIL) g[y][x] = "k";
+    return g;
+  }
+  function loafGrid() {
+    const g = Array.from({ length: 18 }, () => Array(24).fill("."));
+    const rows = { 10: [5, 18], 11: [3, 20], 12: [2, 21], 13: [2, 21], 14: [2, 21], 15: [2, 21], 16: [2, 21], 17: [3, 20] };
+    for (const [y, [a, b]] of Object.entries(rows)) for (let x = a; x <= b; x++) g[y][x] = "k";
+    const head = catGrid("sleep");
+    for (let y = 0; y <= 10; y++) for (let x = 2; x <= 19; x++) if (head[y][x] !== ".") g[y + 3][x] = head[y][x];
+    for (const [x, y] of [[12,16],[13,15],[14,15],[15,15],[16,15],[17,15],[18,15],[19,15],[20,14],[21,13],[21,14]]) g[y][x] = "g";
+    return g;
+  }
+  const LOAF = gridToCanvas(loafGrid(), PAL);
+  const AWAKE = gridToCanvas(catGrid("happy"), PAL);
+
+  const HEART = [".xx...xx.", "xwxx.xxxx", "xxxxxxxxx", "xxxxxxxxx", ".xxxxxxx.", "..xxxxx..", "...xxx...", "....x...."];
+  const HEARTS = PASTELS.map((col) => gridToCanvas(HEART, { x: col, w: "#ffffff" }));
+  document.querySelectorAll(".hearts canvas").forEach((c, i) => paint(c, HEARTS[[0, 1, 2][i]]));
+
+  const kitty = document.getElementById("kitty");
+  const kc = document.getElementById("kittyCanvas");
+  paint(kc, LOAF);
+  let napTimer;
+  function pet() {
+    clearTimeout(napTimer);
+    kitty.classList.remove("loaf", "hop");
+    paint(kc, AWAKE);
+    void kitty.offsetWidth;
+    kitty.classList.add("hop");
+    const r = kitty.getBoundingClientRect();
+    for (let i = 0; i < 6; i++) {
+      const h = document.createElement("img");
+      h.className = "pop";
+      h.alt = "";
+      h.src = HEARTS[(Math.random() * HEARTS.length) | 0].toDataURL();
+      h.style.left = (r.left + r.width * (0.2 + Math.random() * 0.6)) + "px";
+      h.style.top = (r.top + r.height * 0.2) + "px";
+      h.style.setProperty("--dx", ((Math.random() - 0.5) * 70) + "px");
+      h.style.animationDelay = (i * 0.08) + "s";
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 1500);
+    }
+    napTimer = setTimeout(() => { kitty.classList.remove("hop"); kitty.classList.add("loaf"); paint(kc, LOAF); }, 2600);
+  }
+  kitty.addEventListener("click", pet);
+  kitty.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pet(); } });
+
+  try {
+    const fav = document.createElement("canvas");
+    fav.width = fav.height = 32;
+    const f = fav.getContext("2d");
+    f.imageSmoothingEnabled = false;
+    f.drawImage(AWAKE, 3, 0, 16, 11, 0, 5, 32, 22);
+    document.getElementById("favicon").href = fav.toDataURL("image/png");
+  } catch {}
+})();
+</script>
+</body>
+</html>
