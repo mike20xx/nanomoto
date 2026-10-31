@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#fff6fb">
-<meta name="description" content="nanomoto — something cute is on the way.">
+<meta name="description" content="nanomoto">
 <title>nanomoto</title>
 <link rel="icon" id="favicon" href="data:,">
 <link rel="preload" href="fonts/pixelify-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -55,8 +55,7 @@
   @keyframes zzz { 0% { opacity: 0; transform: translate(0, 4px); } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: translate(8px, -12px); } }
 
   h1 { margin: 10px 0 6px; font: 700 40px/1 var(--pixel); letter-spacing: .02em; color: var(--ink); }
-  p { margin: 0; color: var(--muted); }
-  .hearts { display: flex; justify-content: center; gap: 8px; margin-top: 22px; }
+  .hearts { display: flex; justify-content: center; gap: 8px; margin-top: 18px; }
   .hearts canvas { width: 18px; image-rendering: pixelated; }
 
   .pop { position: fixed; pointer-events: none; width: 20px; image-rendering: pixelated; z-index: 10; animation: pop 1s ease-out forwards; }
@@ -64,7 +63,6 @@
 
   @media (prefers-reduced-motion: reduce) {
     .kitty.loaf canvas, .zzz { animation: none; }
-    .kitty.hop, .pop { animation: none; display: none; }
   }
 </style>
 </head>
@@ -75,7 +73,6 @@
     <span class="zzz">z</span>
   </div>
   <h1>nanomoto</h1>
-  <p>something cute is on the way</p>
   <div class="hearts" aria-hidden="true"><canvas></canvas><canvas></canvas><canvas></canvas></div>
 </main>
 
